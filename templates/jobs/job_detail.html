@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ job.title }} at {{ job.company.username }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Job Details -->
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h1 class="card-title text-primary">{{ job.title }}</h1>
+                        <h5 class="text-muted">
+                            <i class="fas fa-building me-2"></i>{{ job.company.username }}
+                        </h5>
+                    </div>
+                    {% if user == job.company %}
+                    <div class="btn-group">
+                        <a href="{% url 'jobs:edit_job' job.id %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-edit me-1"></i>Edit
+                        </a>
+                        <a href="{% url 'jobs:delete_job' job.id %}" class="btn btn-outline-danger btn-sm">
+                            <i class="fas fa-trash me-1"></i>Delete
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    {% if application_count > 0 %}
+                    <div class="mt-2">
+                        <span class="badge bg-info">
+                            <i class="fas fa-users me-1"></i>{{ application_count }} application{{ application_count|pluralize }}
+                        </span>
+                        <a href="{% url 'jobs:company_applications' %}" class="btn btn-outline-info btn-sm ms-2">
+                            <i class="fas fa-eye me-1"></i>View Applications
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p class="text-muted mb-1">
+                            <i class="fas fa-map-marker-alt me-2"></i><strong>Location:</strong>
+                        </p>
+                        <p>{{ job.location }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="text-muted mb-1">
+                            <i class="fas fa-clock me-2"></i><strong>Posted:</strong>
+                        </p>
+                        <p>{{ job.posted_at|date:"F d, Y" }}</p>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h5 class="text-muted mb-3">
+                        <i class="fas fa-file-alt me-2"></i>Job Description
+                    </h5>
+                    <div class="bg-light p-3 rounded">
+                        {{ job.description|linebreaks }}
+                    </div>
+                </div>
+
+                {% if user.is_authenticated and user.profile.role == 'user' %}
+                <div class="text-center">
+                    {% if has_applied %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>Application Submitted!</strong>
+                        <p class="mb-2">You have already applied for this position.</p>
+                        <a href="{% url 'jobs:my_applications' %}" class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-eye me-1"></i>View My Applications
+                        </a>
+                    </div>
+                    {% else %}
+                    <a href="{% url 'jobs:apply_job' job.id %}" class="btn btn-success btn-lg">
+                        <i class="fas fa-paper-plane me-2"></i>Apply Now
+                    </a>
+                    <p class="text-muted mt-2">
+                        <small>Submit your application directly through our platform</small>
+                    </p>
+                    {% endif %}
+                </div>
+                {% elif not user.is_authenticated %}
+                <div class="text-center">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Want to apply for this position?</strong>
+                        <p class="mb-2">Please <a href="{% url 'login' %}" class="alert-link">log in</a> as a user to apply for this job.</p>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-user-tie me-2"></i>
+                        <strong>Management View:</strong> You are logged in as {{ user.profile.get_role_display }} ({{ user.username }}).
+                        <p class="mb-2">Only regular users can apply for jobs. Companies manage their postings, and admins manage the platform.</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Company Info -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-building me-2"></i>About the Company
+                </h5>
+            </div>
+            <div class="card-body">
+                <h6 class="text-primary">{{ job.company.username }}</h6>
+                <p class="text-muted">
+                    <i class="fas fa-map-marker-alt me-1"></i>{{ job.location }}
+                </p>
+                <p class="text-muted">
+                    <i class="fas fa-calendar me-1"></i>Member since {{ job.company.date_joined|date:"M Y" }}
+                </p>
+            </div>
+        </div>
+
+        <!-- Job Summary -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Job Summary
+                </h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="fas fa-briefcase me-2 text-primary"></i>
+                        <strong>Position:</strong> {{ job.title }}
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+                        <strong>Location:</strong> {{ job.location }}
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-clock me-2 text-primary"></i>
+                        <strong>Posted:</strong> {{ job.posted_at|date:"M d, Y" }}
+                    </li>
+                    <li>
+                        <i class="fas fa-calendar me-2 text-primary"></i>
+                        <strong>Posted:</strong> {{ job.posted_at|timesince }} ago
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Back to Jobs -->
+        <div class="mt-3">
+            <a href="{% url 'jobs:job_list' %}" class="btn btn-outline-secondary w-100">
+                <i class="fas fa-arrow-left me-2"></i>Back to All Jobs
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

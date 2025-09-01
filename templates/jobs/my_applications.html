@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}My Applications{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-file-alt me-2"></i>My Applications
+        </h1>
+
+        {% if applications %}
+        <div class="row">
+            {% for application in applications %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">{{ application.job.title }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">
+                            <i class="fas fa-building me-1"></i>{{ application.job.company.username }}
+                        </h6>
+                        <p class="card-text text-muted">
+                            <i class="fas fa-map-marker-alt me-1"></i>{{ application.job.location }}
+                        </p>
+                        
+                        <!-- Status Badge -->
+                        <div class="mb-3">
+                            {% if application.status == 'pending' %}
+                            <span class="badge bg-warning text-dark">
+                                <i class="fas fa-clock me-1"></i>Pending Review
+                            </span>
+                            {% elif application.status == 'reviewed' %}
+                            <span class="badge bg-info">
+                                <i class="fas fa-eye me-1"></i>Reviewed
+                            </span>
+                            {% elif application.status == 'shortlisted' %}
+                            <span class="badge bg-primary">
+                                <i class="fas fa-star me-1"></i>Shortlisted
+                            </span>
+                            {% elif application.status == 'rejected' %}
+                            <span class="badge bg-danger">
+                                <i class="fas fa-times me-1"></i>Rejected
+                            </span>
+                            {% elif application.status == 'hired' %}
+                            <span class="badge bg-success">
+                                <i class="fas fa-check me-1"></i>Hired
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        <p class="card-text">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar me-1"></i>Applied {{ application.applied_at|date:"M d, Y" }}
+                            </small>
+                        </p>
+                        
+                        <div class="mt-3">
+                            <a href="{% url 'jobs:application_detail' application.id %}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-eye me-1"></i>View Details
+                            </a>
+                            <a href="{% url 'jobs:job_detail' application.job.id %}" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-briefcase me-1"></i>View Job
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+            <h4 class="text-muted">No Applications Yet</h4>
+            <p class="text-muted">
+                You haven't applied for any jobs yet. Start browsing available positions!
+            </p>
+            <a href="{% url 'jobs:job_list' %}" class="btn btn-primary">
+                <i class="fas fa-search me-1"></i>Browse Jobs
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

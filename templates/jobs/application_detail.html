@@ -1,0 +1,316 @@
+{% extends 'base.html' %}
+
+{% block title %}Application Details - {{ application.job.title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Application Details -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">
+                    <i class="fas fa-file-alt me-2"></i>Application Details
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5 class="text-primary">{{ application.job.title }}</h5>
+                        <p class="text-muted">
+                            <i class="fas fa-building me-1"></i>{{ application.job.company.username }}
+                        </p>
+                        <p class="text-muted">
+                            <i class="fas fa-map-marker-alt me-1"></i>{{ application.job.location }}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="text-muted mb-1">
+                            <i class="fas fa-calendar me-1"></i><strong>Applied:</strong>
+                        </p>
+                        <p>{{ application.applied_at|date:"F d, Y" }}</p>
+                        <p class="text-muted mb-1">
+                            <i class="fas fa-clock me-1"></i><strong>Status:</strong>
+                        </p>
+                        <div class="d-flex align-items-center gap-2">
+                            <span id="status-badge-{{ application.id }}" class="badge 
+                                {% if application.status == 'pending' %}bg-warning text-dark
+                                {% elif application.status == 'reviewed' %}bg-info
+                                {% elif application.status == 'shortlisted' %}bg-primary
+                                {% elif application.status == 'rejected' %}bg-danger
+                                {% elif application.status == 'hired' %}bg-success{% endif %}">
+                                {% if application.status == 'pending' %}
+                                    <i class="fas fa-clock me-1"></i>Pending Review
+                                {% elif application.status == 'reviewed' %}
+                                    <i class="fas fa-eye me-1"></i>Reviewed
+                                {% elif application.status == 'shortlisted' %}
+                                    <i class="fas fa-star me-1"></i>Shortlisted
+                                {% elif application.status == 'rejected' %}
+                                    <i class="fas fa-times me-1"></i>Rejected
+                                {% elif application.status == 'hired' %}
+                                    <i class="fas fa-check me-1"></i>Hired
+                                {% endif %}
+                            </span>
+                            
+                            {% if user.profile.role == 'company' and application.job.company == user or user.profile.role == 'admin' %}
+                            <!-- Status Update Dropdown -->
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><h6 class="dropdown-header">Update Status</h6></li>
+                                    <li><a class="dropdown-item status-update" href="#" 
+                                           data-application-id="{{ application.id }}" 
+                                           data-status="pending">Pending Review</a></li>
+                                    <li><a class="dropdown-item status-update" href="#" 
+                                           data-application-id="{{ application.id }}" 
+                                           data-status="reviewed">Reviewed</a></li>
+                                    <li><a class="dropdown-item status-update" href="#" 
+                                           data-application-id="{{ application.id }}" 
+                                           data-status="shortlisted">Shortlisted</a></li>
+                                    <li><a class="dropdown-item status-update" href="#" 
+                                           data-application-id="{{ application.id }}" 
+                                           data-status="rejected">Rejected</a></li>
+                                    <li><a class="dropdown-item status-update" href="#" 
+                                           data-application-id="{{ application.id }}" 
+                                           data-status="hired">Hired</a></li>
+                                </ul>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h5 class="text-muted mb-3">
+                        <i class="fas fa-file-text me-2"></i>Cover Letter
+                    </h5>
+                    <div class="bg-light p-3 rounded">
+                        {{ application.cover_letter|linebreaks }}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h5 class="text-muted mb-3">
+                        <i class="fas fa-file-upload me-2"></i>Resume
+                    </h5>
+                    <div class="bg-light p-3 rounded">
+                        <p class="mb-2">
+                            <i class="fas fa-file me-1"></i>
+                            <strong>File:</strong> {{ application.resume.name|slice:"9:" }}
+                        </p>
+                        <a href="{{ application.resume.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-download me-1"></i>Download Resume
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Job Summary -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-briefcase me-2"></i>Job Summary
+                </h5>
+            </div>
+            <div class="card-body">
+                <h6 class="text-primary">{{ application.job.title }}</h6>
+                <p class="text-muted">
+                    <i class="fas fa-building me-1"></i>{{ application.job.company.username }}
+                </p>
+                <p class="text-muted">
+                    <i class="fas fa-map-marker-alt me-1"></i>{{ application.job.location }}
+                </p>
+                <p class="text-muted">
+                    <i class="fas fa-calendar me-1"></i>Posted {{ application.job.posted_at|date:"M d, Y" }}
+                </p>
+                <a href="{% url 'jobs:job_detail' application.job.id %}" class="btn btn-outline-primary btn-sm w-100">
+                    <i class="fas fa-eye me-1"></i>View Job Details
+                </a>
+            </div>
+        </div>
+
+        <!-- Applicant Info -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-user me-2"></i>Applicant Info
+                </h5>
+            </div>
+            <div class="card-body">
+                <h6 class="text-primary">{{ application.applicant.get_full_name|default:application.applicant.username }}</h6>
+                <p class="text-muted">
+                    <i class="fas fa-envelope me-1"></i>{{ application.applicant.email }}
+                </p>
+                <p class="text-muted">
+                    <i class="fas fa-calendar me-1"></i>Member since {{ application.applicant.date_joined|date:"M Y" }}
+                </p>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="d-grid gap-2">
+            <a href="{% url 'jobs:my_applications' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i>Back to Applications
+            </a>
+            <a href="{% url 'jobs:job_list' %}" class="btn btn-outline-primary">
+                <i class="fas fa-search me-1"></i>Browse More Jobs
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Status Updates -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Clear any existing notifications when page loads
+    clearExistingNotifications();
+    
+    // Handle status update clicks
+    document.querySelectorAll('.status-update').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const applicationId = this.getAttribute('data-application-id');
+            const newStatus = this.getAttribute('data-status');
+            const statusText = this.textContent.trim();
+            
+            // Show confirmation dialog
+            if (confirm(`Are you sure you want to update this application status to "${statusText}"?`)) {
+                updateApplicationStatus(applicationId, newStatus, statusText);
+            }
+        });
+    });
+    
+    function updateApplicationStatus(applicationId, newStatus, statusText) {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                         document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
+        
+        fetch(`/applications/${applicationId}/update-status/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrfToken
+            },
+            body: `status=${newStatus}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update the status badge
+                const badge = document.getElementById(`status-badge-${applicationId}`);
+                if (badge) {
+                    // Remove old classes
+                    badge.className = 'badge';
+                    
+                    // Add new classes based on status
+                    if (newStatus === 'pending') {
+                        badge.classList.add('bg-warning', 'text-dark');
+                        badge.innerHTML = '<i class="fas fa-clock me-1"></i>Pending Review';
+                    } else if (newStatus === 'reviewed') {
+                        badge.classList.add('bg-info');
+                        badge.innerHTML = '<i class="fas fa-eye me-1"></i>Reviewed';
+                    } else if (newStatus === 'shortlisted') {
+                        badge.classList.add('bg-primary');
+                        badge.innerHTML = '<i class="fas fa-star me-1"></i>Shortlisted';
+                    } else if (newStatus === 'rejected') {
+                        badge.classList.add('bg-danger');
+                        badge.innerHTML = '<i class="fas fa-times me-1"></i>Rejected';
+                    } else if (newStatus === 'hired') {
+                        badge.classList.add('bg-success');
+                        badge.innerHTML = '<i class="fas fa-check me-1"></i>Hired';
+                    }
+                }
+                
+                // Show success message
+                showAlert('success', data.message);
+            } else {
+                showAlert('danger', data.error || 'Failed to update status');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('danger', 'An error occurred while updating the status');
+        });
+    }
+    
+    function showAlert(type, message) {
+        // Create a more prominent notification
+        const notificationDiv = document.createElement('div');
+        notificationDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        notificationDiv.style.cssText = `
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border: none;
+            border-radius: 8px;
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.3s ease-in-out;
+        `;
+        
+        // Add icon based on type
+        let icon = '';
+        if (type === 'success') {
+            icon = '<i class="fas fa-check-circle me-2"></i>';
+        } else if (type === 'danger') {
+            icon = '<i class="fas fa-exclamation-circle me-2"></i>';
+        } else if (type === 'warning') {
+            icon = '<i class="fas fa-exclamation-triangle me-2"></i>';
+        } else {
+            icon = '<i class="fas fa-info-circle me-2"></i>';
+        }
+        
+        notificationDiv.innerHTML = `
+            <div class="d-flex align-items-center">
+                ${icon}
+                <span class="flex-grow-1">${message}</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div class="progress mt-2" style="height: 2px;">
+                <div class="progress-bar bg-${type === 'success' ? 'success' : type === 'danger' ? 'danger' : 'primary'}" 
+                     style="width: 100%; transition: width 8s linear;"></div>
+            </div>
+        `;
+        
+        // Add to body
+        document.body.appendChild(notificationDiv);
+        
+        // Auto-remove after 8 seconds
+        setTimeout(() => {
+            if (notificationDiv.parentNode) {
+                notificationDiv.remove();
+            }
+        }, 8000);
+        
+        // Add slide-in animation
+        setTimeout(() => {
+            notificationDiv.style.transform = 'translateX(0)';
+            notificationDiv.style.opacity = '1';
+            
+            // Start progress bar animation
+            const progressBar = notificationDiv.querySelector('.progress-bar');
+            if (progressBar) {
+                setTimeout(() => {
+                    progressBar.style.width = '0%';
+                }, 100);
+            }
+        }, 100);
+    }
+    
+    function clearExistingNotifications() {
+        // Remove any existing notification elements
+        const existingNotifications = document.querySelectorAll('.alert.position-fixed');
+        existingNotifications.forEach(notification => {
+            notification.remove();
+        });
+    }
+});
+</script>
+{% endblock %}
