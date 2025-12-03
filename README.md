@@ -40,6 +40,18 @@ A comprehensive job board application built with Django that allows companies to
   - Edit existing job postings
   - Delete job listings
   - View all applications for their jobs
+  - **🤖 AI-Powered Candidate Recommendations (New Feature)**
+    - Extract key skills from job descriptions using NLP-powered engine
+    - System analyzes job description and identifies technical/soft skills with importance weights
+    - Compare skills against candidate profiles to calculate fit scores
+    - Instantly see which candidates are the best match for the position
+    
+    ![Extracted Skills](Screenshot_1.png)
+    *Skills extracted from job description with importance weights (1-10 scale)*
+    
+    ![Matching Candidates](Screenshot_2.png)
+    *Candidate recommendations ranked by fit score based on skill matching*
+
 - **For Users:**
   - Browse all available jobs
   - Search jobs by title or location
@@ -79,29 +91,6 @@ A comprehensive job board application built with Django that allows companies to
 - Manage users, profiles, jobs, and applications
 - User role management
 - Platform-wide oversight
-
-### 🤖 **AI-Powered Candidate Recommendations (New Feature)**
-
-Our intelligent recommendation system helps companies find the best-fit candidates for their job openings.
-
-#### **Step 1: Skill Extraction**
-Companies can extract key skills from job descriptions using our NLP-powered engine. The system analyzes the job description and identifies relevant technical and soft skills with importance weights.
-
-![Extracted Skills](Screenshot_1.png)
-*Skills extracted from job description with importance weights (1-10 scale)*
-
-#### **Step 2: Candidate Matching**
-Once skills are extracted, the system compares them against candidate profiles to calculate a fit score for every applicant. Companies can instantly see which candidates are the best match for the position.
-
-![Matching Candidates](Screenshot_2.png)
-*Candidate recommendations ranked by fit score based on skill matching*
-
-#### **Key Features:**
-- 🎯 **Automatic Skill Extraction** - NLP-powered analysis of job descriptions
-- 📊 **Weighted Scoring** - Skills are weighted by importance (1-10 scale)
-- 🔍 **Smart Matching** - Compares job requirements with candidate skills
-- 📈 **Fit Score Calculation** - Percentage-based candidate ranking
-- ⚡ **One-Click Analysis** - Extract skills and find matches instantly
 
 ## 🚀 **Technology Stack**
 
@@ -176,25 +165,6 @@ jobboard/
    - Main site: http://127.0.0.1:8000/
    - Admin panel: http://127.0.0.1:8000/admin/
 
-## 📊 **Database Models**
-
-### **Profile Model**
-- Extends Django User model
-- Role field: admin, company, or user
-- Automatic profile creation on user registration
-
-### **Job Model**
-- Title, company (linked to User), location, description
-- Optional external apply link
-- Posted date (auto-generated)
-- Company can only edit/delete their own jobs
-
-### **Application Model**
-- Links job and applicant
-- Cover letter and resume upload
-- Application status tracking
-- Prevents duplicate applications per user per job
-
 ## 🔒 **Security Features**
 
 - CSRF protection on all forms
@@ -202,22 +172,6 @@ jobboard/
 - Role-based access control
 - Secure file handling for resumes
 - Input sanitization and validation
-
-## 🎨 **UI/UX Features**
-
-- **Responsive Design:** Works on all device sizes
-- **Bootstrap 5:** Modern, clean interface
-- **Font Awesome Icons:** Intuitive visual elements
-- **Real-time Notifications:** Status update confirmations
-- **Progress Indicators:** Visual feedback for actions
-- **Color-coded Status Badges:** Easy application tracking
-
-## 📱 **Responsive Features**
-
-- Mobile-first design approach
-- Collapsible navigation menu
-- Touch-friendly buttons and forms
-- Optimized layouts for small screens
 
 ## 🚀 **Deployment**
 
@@ -232,20 +186,3 @@ jobboard/
 - Environment variable configuration
 - Static file optimization
 - Security headers and HTTPS
-
-## 🔧 **Customization**
-
-### **Adding New User Roles**
-- Modify `Profile.ROLE_CHOICES` in models.py
-- Update view logic and templates
-- Add role-specific permissions
-
-### **Extending Job Model**
-- Add new fields to Job model
-- Update forms and templates
-- Modify search functionality
-
-### **Extending the Application System**
-- Add new application statuses
-- Implement email notifications
-- Create custom approval processes
