@@ -3,6 +3,15 @@
 {% block title %}Job Board - Find Your Next Opportunity{% endblock %}
 
 {% block content %}
+<style>
+    .job-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+    }
+    .job-card .stretched-link {
+        z-index: 1;
+    }
+</style>
 <div class="row">
     <div class="col-12">
         <h1 class="mb-4">
@@ -55,7 +64,8 @@
         <div class="row">
             {% for job in jobs %}
             <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card h-100 shadow-sm">
+                <div class="card h-100 shadow-sm job-card" style="cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">
+                    <a href="{% url 'jobs:job_detail' job.id %}" class="stretched-link"></a>
                     <div class="card-body">
                         <h5 class="card-title text-primary">{{ job.title }}</h5>
                         <h6 class="card-subtitle mb-2 text-muted">
@@ -71,9 +81,9 @@
                             <small class="text-muted">
                                 <i class="fas fa-clock me-1"></i>{{ job.posted_at|date:"M d, Y" }}
                             </small>
-                            <a href="{% url 'jobs:job_detail' job.id %}" class="btn btn-outline-primary btn-sm">
+                            <span class="btn btn-outline-primary btn-sm">
                                 View Details
-                            </a>
+                            </span>
                         </div>
                     </div>
                 </div>

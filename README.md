@@ -80,6 +80,29 @@ A comprehensive job board application built with Django that allows companies to
 - User role management
 - Platform-wide oversight
 
+### 🤖 **AI-Powered Candidate Recommendations (New Feature)**
+
+Our intelligent recommendation system helps companies find the best-fit candidates for their job openings.
+
+#### **Step 1: Skill Extraction**
+Companies can extract key skills from job descriptions using our NLP-powered engine. The system analyzes the job description and identifies relevant technical and soft skills with importance weights.
+
+![Extracted Skills](Screenshot_1.png)
+*Skills extracted from job description with importance weights (1-10 scale)*
+
+#### **Step 2: Candidate Matching**
+Once skills are extracted, the system compares them against candidate profiles to calculate a fit score for every applicant. Companies can instantly see which candidates are the best match for the position.
+
+![Matching Candidates](Screenshot_2.png)
+*Candidate recommendations ranked by fit score based on skill matching*
+
+#### **Key Features:**
+- 🎯 **Automatic Skill Extraction** - NLP-powered analysis of job descriptions
+- 📊 **Weighted Scoring** - Skills are weighted by importance (1-10 scale)
+- 🔍 **Smart Matching** - Compares job requirements with candidate skills
+- 📈 **Fit Score Calculation** - Percentage-based candidate ranking
+- ⚡ **One-Click Analysis** - Extract skills and find matches instantly
+
 ## 🚀 **Technology Stack**
 
 - **Backend:** Django 5.2.5
