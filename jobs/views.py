@@ -1,3 +1,5 @@
+import logging
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -5,8 +7,17 @@ from django.db.models import Q
 from django.core.exceptions import ValidationError
 from django.contrib.auth import logout
 from django.http import HttpResponseRedirect, JsonResponse
+from django.views.decorators.http import require_POST
 from .models import Job, Application
 from .forms import JobForm, ApplicationForm
+from .services import (
+    build_candidate_match_payload,
+    save_candidate_skills_from_text,
+    extract_text_from_resume,
+    save_job_skills,
+)
+
+logger = logging.getLogger(__name__)
 
 def custom_logout(request):
     """Custom logout view to ensure proper session clearing"""
@@ -64,12 +75,49 @@ def job_detail(request, job_id):
     if request.user.is_authenticated and request.user.profile.role == 'company' and job.company == request.user:
         application_count = Application.objects.filter(job=job).count()
     
+    can_manage_recommendations = False
+    if request.user.is_authenticated:
+        role = request.user.profile.role
+        can_manage_recommendations = role == 'admin' or (role == 'company' and job.company == request.user)
+
     context = {
         'job': job,
         'has_applied': has_applied,
         'application_count': application_count,
+        'can_manage_recommendations': can_manage_recommendations,
     }
     return render(request, 'jobs/job_detail.html', context)
+
+
+@login_required
+@require_POST
+def extract_job_skills(request, job_id):
+    """
+    Extract skills for a job using the NLP pipeline (AJAX endpoint).
+    """
+    job = get_object_or_404(Job, id=job_id)
+    if request.user.profile.role not in ['admin', 'company']:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    if request.user.profile.role == 'company' and job.company != request.user:
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+
+    force_dictionary = request.GET.get('fallback') == '1'
+    try:
+        skills_payload = save_job_skills(job, force_dictionary=force_dictionary)
+        return JsonResponse(
+            {
+                'success': True,
+                'skills_count': len(skills_payload),
+                'skills': skills_payload,
+                'message': f"Extracted {len(skills_payload)} skills successfully.",
+            }
+        )
+    except Exception as extraction_error:  # pragma: no cover - best effort
+        logger.exception("Failed to extract skills for job %s", job.id)
+        return JsonResponse(
+            {'error': f'Unable to extract skills: {extraction_error}'},
+            status=500,
+        )
 
 @login_required
 def apply_job(request, job_id):
@@ -93,6 +141,31 @@ def apply_job(request, job_id):
                 application.job = job
                 application.applicant = request.user
                 application.save()
+                
+                # Extract skills from cover letter and resume using NLP (best-effort)
+                try:
+                    # Extract from cover letter
+                    save_candidate_skills_from_text(
+                        user=request.user,
+                        text=application.cover_letter,
+                        source='cover_letter'
+                    )
+                    
+                    # Extract from resume file if available
+                    if application.resume:
+                        resume_text = extract_text_from_resume(application.resume)
+                        if resume_text:
+                            save_candidate_skills_from_text(
+                                user=request.user,
+                                text=resume_text,
+                                source='resume'
+                            )
+                except Exception as extraction_error:  # pragma: no cover - best effort
+                    logger.warning(
+                        "Failed to extract candidate skills for user %s: %s",
+                        request.user.username,
+                        extraction_error,
+                    )
                 messages.success(request, 'Your application has been submitted successfully!')
                 return redirect('jobs:my_applications')
             except ValidationError as e:
@@ -263,3 +336,43 @@ def update_application_status(request, application_id):
             return JsonResponse({'error': 'Invalid status'}, status=400)
     else:
         return JsonResponse({'error': 'Permission denied'}, status=403)
+
+
+@login_required
+def job_recommendations(request, job_id):
+    """
+    Display candidate recommendations for a job based on extracted skills.
+    """
+    job = get_object_or_404(Job, id=job_id)
+
+    if request.user.profile.role not in ['admin', 'company']:
+        messages.error(request, "Only companies and admins can view recommendations.")
+        return redirect('jobs:job_detail', job_id=job.id)
+    if request.user.profile.role == 'company' and job.company != request.user:
+        messages.error(request, "You can only view recommendations for your own jobs.")
+        return redirect('jobs:job_detail', job_id=job.id)
+
+    if not job.has_extracted_skills():
+        messages.warning(request, "Please extract skills before viewing recommendations.")
+        return redirect('jobs:job_detail', job_id=job.id)
+
+    candidates = build_candidate_match_payload(job)
+
+    for candidate_data in candidates:
+        candidate = candidate_data['candidate']
+        application = Application.objects.filter(applicant=candidate, job=job).first()
+        if not application:
+            application = (
+                Application.objects
+                .filter(applicant=candidate, job__company=job.company)
+                .order_by('-applied_at')
+                .first()
+            )
+        candidate_data['application'] = application
+
+    context = {
+        'job': job,
+        'job_skills': job.get_extracted_skills(),
+        'candidates': candidates,
+    }
+    return render(request, 'jobs/job_recommendations.html', context)

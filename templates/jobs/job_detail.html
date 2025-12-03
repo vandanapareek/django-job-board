@@ -5,7 +5,6 @@
 {% block content %}
 <div class="row">
     <div class="col-lg-8">
-        <!-- Job Details -->
         <div class="card">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start mb-3">
@@ -25,7 +24,6 @@
                         </a>
                     </div>
                     {% endif %}
-                    
                     {% if application_count > 0 %}
                     <div class="mt-2">
                         <span class="badge bg-info">
@@ -38,73 +36,182 @@
                     {% endif %}
                 </div>
 
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <p class="text-muted mb-1">
-                            <i class="fas fa-map-marker-alt me-2"></i><strong>Location:</strong>
-                        </p>
-                        <p>{{ job.location }}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <p class="text-muted mb-1">
-                            <i class="fas fa-clock me-2"></i><strong>Posted:</strong>
-                        </p>
-                        <p>{{ job.posted_at|date:"F d, Y" }}</p>
-                    </div>
-                </div>
+                <ul class="nav nav-tabs mb-4" id="jobTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="details-tab" data-bs-toggle="tab"
+                                data-bs-target="#details" type="button" role="tab">
+                            <i class="fas fa-info-circle me-1"></i>Details
+                        </button>
+                    </li>
+                    {% if can_manage_recommendations %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="recommendations-tab" data-bs-toggle="tab"
+                                data-bs-target="#recommendations" type="button" role="tab">
+                            <i class="fas fa-users me-1"></i>Recommendations
+                            {% if job.job_skills.count %}
+                                <span class="badge bg-success ms-1">{{ job.job_skills.count }}</span>
+                            {% endif %}
+                        </button>
+                    </li>
+                    {% endif %}
+                </ul>
 
-                <div class="mb-4">
-                    <h5 class="text-muted mb-3">
-                        <i class="fas fa-file-alt me-2"></i>Job Description
-                    </h5>
-                    <div class="bg-light p-3 rounded">
-                        {{ job.description|linebreaks }}
-                    </div>
-                </div>
+                <div class="tab-content" id="jobTabContent">
+                    <div class="tab-pane fade show active" id="details" role="tabpanel" aria-labelledby="details-tab">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <p class="text-muted mb-1">
+                                    <i class="fas fa-map-marker-alt me-2"></i><strong>Location:</strong>
+                                </p>
+                                <p>{{ job.location }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="text-muted mb-1">
+                                    <i class="fas fa-clock me-2"></i><strong>Posted:</strong>
+                                </p>
+                                <p>{{ job.posted_at|date:"F d, Y" }}</p>
+                            </div>
+                        </div>
 
-                {% if user.is_authenticated and user.profile.role == 'user' %}
-                <div class="text-center">
-                    {% if has_applied %}
-                    <div class="alert alert-success">
-                        <i class="fas fa-check-circle me-2"></i>
-                        <strong>Application Submitted!</strong>
-                        <p class="mb-2">You have already applied for this position.</p>
-                        <a href="{% url 'jobs:my_applications' %}" class="btn btn-outline-success btn-sm">
-                            <i class="fas fa-eye me-1"></i>View My Applications
-                        </a>
+                        <div class="mb-4">
+                            <h5 class="text-muted mb-3">
+                                <i class="fas fa-file-alt me-2"></i>Job Description
+                            </h5>
+                            <div class="bg-light p-3 rounded">
+                                {{ job.description|linebreaks }}
+                            </div>
+                        </div>
+
+                        {% if user.is_authenticated and user.profile.role == 'user' %}
+                        <div class="text-center">
+                            {% if has_applied %}
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <strong>Application Submitted!</strong>
+                                <p class="mb-2">You have already applied for this position.</p>
+                                <a href="{% url 'jobs:my_applications' %}" class="btn btn-outline-success btn-sm">
+                                    <i class="fas fa-eye me-1"></i>View My Applications
+                                </a>
+                            </div>
+                            {% else %}
+                            <a href="{% url 'jobs:apply_job' job.id %}" class="btn btn-success btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i>Apply Now
+                            </a>
+                            <p class="text-muted mt-2">
+                                <small>Submit your application directly through our platform</small>
+                            </p>
+                            {% endif %}
+                        </div>
+                        {% elif not user.is_authenticated %}
+                        <div class="text-center">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Want to apply for this position?</strong>
+                                <p class="mb-2">Please <a href="{% url 'login' %}" class="alert-link">log in</a> as a user to apply for this job.</p>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="text-center">
+                            <div class="alert alert-warning">
+                                <i class="fas fa-user-tie me-2"></i>
+                                <strong>Management View:</strong> You are logged in as {{ user.profile.get_role_display }} ({{ user.username }}).
+                                <p class="mb-2">Only regular users can apply for jobs. Companies manage their postings, and admins manage the platform.</p>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
-                    {% else %}
-                    <a href="{% url 'jobs:apply_job' job.id %}" class="btn btn-success btn-lg">
-                        <i class="fas fa-paper-plane me-2"></i>Apply Now
-                    </a>
-                    <p class="text-muted mt-2">
-                        <small>Submit your application directly through our platform</small>
-                    </p>
+
+                    {% if can_manage_recommendations %}
+                    <div class="tab-pane fade" id="recommendations" role="tabpanel" aria-labelledby="recommendations-tab">
+                        {% if not job.has_extracted_skills %}
+                        <div class="card mb-4 border-dashed">
+                            <div class="card-body text-center">
+                                <h5 class="card-title mb-3">
+                                    <i class="fas fa-magic me-2"></i>Extract Skills with AI
+                                </h5>
+                                <p class="text-muted mb-4">
+                                    Let our NLP engine analyze this job description and surface the key skills required for this role.
+                                </p>
+                                <button class="btn btn-primary btn-lg" id="extract-skills-btn"
+                                        data-extract-url="{% url 'jobs:extract_job_skills' job.id %}">
+                                    <i class="fas fa-sparkles me-2"></i>Extract Skills
+                                </button>
+                                <div id="extract-loading" class="mt-3" style="display:none;">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Extracting skills...</span>
+                                    </div>
+                                    <p class="mt-2 text-muted">Analyzing job description...</p>
+                                </div>
+                                <div id="extract-feedback" class="mt-3"></div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="card mb-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-list-check me-2"></i>Extracted Skills
+                                    <span class="badge bg-primary ms-2">{{ job.job_skills.count }}</span>
+                                </h5>
+                                <button class="btn btn-sm btn-outline-secondary" id="re-extract-skills-btn"
+                                        data-extract-url="{% url 'jobs:extract_job_skills' job.id %}">
+                                    <i class="fas fa-sync me-1"></i>Re-run Extraction
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    {% for skill in job.get_extracted_skills %}
+                                    <div class="col-md-6 mb-3">
+                                        <div class="border rounded p-3 h-100">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span class="fw-bold">{{ skill.skill_name|title }}</span>
+                                                <span class="badge 
+                                                    {% if skill.weight >= 8 %}bg-success
+                                                    {% elif skill.weight >= 5 %}bg-warning text-dark
+                                                    {% else %}bg-secondary{% endif %}">
+                                                    {{ skill.weight }}/10
+                                                </span>
+                                            </div>
+                                            <div class="progress" style="height:8px;">
+                                                <div class="progress-bar 
+                                                    {% if skill.weight >= 8 %}bg-success
+                                                    {% elif skill.weight >= 5 %}bg-warning
+                                                    {% else %}bg-secondary{% endif %}"
+                                                    role="progressbar"
+                                                    style="width: {{ skill.weight }}0%;"
+                                                    aria-valuenow="{{ skill.weight }}" aria-valuemin="0" aria-valuemax="10">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% empty %}
+                                    <p class="text-muted">No skills extracted yet.</p>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h5 class="card-title mb-3">
+                                    <i class="fas fa-user-check me-2"></i>Ready to meet the best-fit candidates?
+                                </h5>
+                                <p class="text-muted mb-4">
+                                    We will compare these skills with your candidate pool to calculate a fit score for every applicant.
+                                </p>
+                                <a href="{% url 'jobs:job_recommendations' job.id %}" class="btn btn-success btn-lg">
+                                    <i class="fas fa-search me-2"></i>Find Matching Candidates
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
                     {% endif %}
                 </div>
-                {% elif not user.is_authenticated %}
-                <div class="text-center">
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>Want to apply for this position?</strong>
-                        <p class="mb-2">Please <a href="{% url 'login' %}" class="alert-link">log in</a> as a user to apply for this job.</p>
-                    </div>
-                </div>
-                {% else %}
-                <div class="text-center">
-                    <div class="alert alert-warning">
-                        <i class="fas fa-user-tie me-2"></i>
-                        <strong>Management View:</strong> You are logged in as {{ user.profile.get_role_display }} ({{ user.username }}).
-                        <p class="mb-2">Only regular users can apply for jobs. Companies manage their postings, and admins manage the platform.</p>
-                    </div>
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>
 
     <div class="col-lg-4">
-        <!-- Company Info -->
         <div class="card mb-3">
             <div class="card-header">
                 <h5 class="mb-0">
@@ -122,7 +229,6 @@
             </div>
         </div>
 
-        <!-- Job Summary -->
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">
@@ -130,7 +236,7 @@
                 </h5>
             </div>
             <div class="card-body">
-                <ul class="list-unstyled">
+                <ul class="list-unstyled mb-0">
                     <li class="mb-2">
                         <i class="fas fa-briefcase me-2 text-primary"></i>
                         <strong>Position:</strong> {{ job.title }}
@@ -145,13 +251,12 @@
                     </li>
                     <li>
                         <i class="fas fa-calendar me-2 text-primary"></i>
-                        <strong>Posted:</strong> {{ job.posted_at|timesince }} ago
+                        <strong>Active:</strong> {{ job.posted_at|timesince }} ago
                     </li>
                 </ul>
             </div>
         </div>
 
-        <!-- Back to Jobs -->
         <div class="mt-3">
             <a href="{% url 'jobs:job_list' %}" class="btn btn-outline-secondary w-100">
                 <i class="fas fa-arrow-left me-2"></i>Back to All Jobs
@@ -159,4 +264,52 @@
         </div>
     </div>
 </div>
+
+{% if can_manage_recommendations %}
+<script>
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return '';
+}
+
+function handleSkillExtraction(buttonId) {
+    const btn = document.getElementById(buttonId);
+    if (!btn) return;
+    const loading = document.getElementById('extract-loading');
+    const feedback = document.getElementById('extract-feedback');
+    const endpoint = btn.dataset.extractUrl;
+    btn.disabled = true;
+    if (loading) loading.style.display = 'block';
+    fetch(endpoint, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            feedback.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            throw new Error(data.error || 'Unable to extract skills.');
+        }
+    })
+    .catch(error => {
+        console.error(error);
+        feedback.innerHTML = `<div class="alert alert-danger">${error}</div>`;
+    })
+    .finally(() => {
+        btn.disabled = false;
+        if (loading) loading.style.display = 'none';
+    });
+}
+
+document.getElementById('extract-skills-btn')?.addEventListener('click', () => handleSkillExtraction('extract-skills-btn'));
+document.getElementById('re-extract-skills-btn')?.addEventListener('click', () => handleSkillExtraction('re-extract-skills-btn'));
+</script>
+{% endif %}
 {% endblock %}
